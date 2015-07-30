@@ -13,6 +13,13 @@
 <!-- <script type="text/javascript" src="js/d3.js"></script> -->
 <script type="text/javascript">
 
+var indexData= function(searchNode) {
+	var ind=dataset.nodes.map(function(f){return f.url}).indexOf(searchNode);
+	if(ind!==-1) {
+		return dataset.nodes[ind];
+	}
+  	return dataset.nodes[dataset.nodes.map(function(f){return f.url}).indexOf("Orphaned")]
+}
     var w = 1000;
     var h = 600;
     var linkDistance=200;
@@ -20,37 +27,6 @@
     var colors = d3.scale.category10();
 
     var dataset = {
-
-    nodes: [
-    {name: "Adam"},
-    {name: "Bob"},
-    {name: "Carrie"},
-    {name: "Donovan"},
-    {name: "Edward"},
-    {name: "Felicity"},
-    {name: "George"},
-    {name: "Hannah"},
-    {name: "Iris"},
-    {name: "Jerry"}
-    ],
-    edges: [
-    {source: 0, target: 1},
-    {source: 0, target: 2},
-    {source: 0, target: 3},
-    {source: 0, target: 4},
-    {source: 1, target: 5},
-    {source: 2, target: 5},
-    {source: 2, target: 5},
-    {source: 3, target: 4},
-    {source: 5, target: 8},
-    {source: 5, target: 9},
-    {source: 6, target: 7},
-    {source: 7, target: 8},
-    {source: 8, target: 9}
-    ]
-    };
-
-    var dataset2 = {
 	    nodes: [
 	    	{
 	        url:"http://website1.com/",
@@ -71,61 +47,86 @@
 			{
 	        url:"http://website5.com/",
 			words: [ { w:'Bob', c:14 }, { w:'test', c:123}]
+			},
+			{
+	        url:"http://website6.com/",
+			words: [ { w:'Bob', c:14 }, { w:'test', c:123}]
+			},
+			{
+	        url:"Orphaned",
+			words: [ ]
 			}
 	    ],
-	    edges: /*[
+	    edges: [
 	    	{
-	    		source: "http://website1.com/", 
-	    		dest: "http://website2.com/"
+	    		source: 0, target: 0,
+	    		srce: "http://website1.com/", 
+	    		dest: "http://website2.com/",
+	    		count: 100
+	    	},
+	    	{
+	    		source: 0, target: 0,
+	    		srce: "http://website1.com/", 
+	    		dest: "http://website3.com/",
+	    		count: 130
+	    	},
+	    	{
+	    		source: 0, target: 0,
+	    		srce: "http://website2.com/", 
+	    		dest: "http://website4.com/",
 	    		count: 234
 	    	},
 	    	{
-	    		source: "http://website1.com/", 
-	    		dest: "http://website3.com/"
-	    		count: 234
+	    		source: 0, target: 0,
+	    		srce: "http://website3.com/", 
+	    		dest: "http://website4.com/",
+	    		count: 240
 	    	},
 	    	{
-	    		source: "http://website2.com/", 
-	    		dest: "http://website4.com/"
-	    		count: 234
+	    		source: 0, target: 0,
+	    		srce: "http://website4.com/", 
+	    		dest: "http://website5.com/",
+	    		count: 300
 	    	},
 	    	{
-	    		source: "http://website3.com/", 
-	    		dest: "http://website4.com/"
-	    		count: 234
+	    		source: 0, target: 0,
+	    		srce: "http://website4.com/", 
+	    		dest: "http://website6.com/",
+	    		count: 140
 	    	},
 	    	{
-	    		source: "http://website4.com/", 
-	    		dest: "http://website5.com/"
-	    		count: 234
+	    		source: 0, target: 0,
+	    		srce: "http://website3.com/", 
+	    		dest: "http://website6.com/",
+	    		count: 175
 	    	},
 	    	{
-	    		source: "http://website4.com/", 
-	    		dest: "http://website6.com/"
-	    		count: 234
-	    	},
-	    	{
-	    		source: "http://website3.com/", 
-	    		dest: "http://website6.com/"
-	    		count: 234
+	    		source: 0, target: 0,
+	    		srce: "http://website6.com/", 
+	    		dest: "http://website3.com/",
+	    		count: 200
 	    	}
-	    ]*/
-	    [
-    {source: 0, target: 1},
-    {source: 0, target: 2},
-    {source: 0, target: 3},
-    {source: 0, target: 4},
-    {source: 1, target: 2},
-    {source: 2, target: 4}
-    ]
+	    	,
+	    	{
+	    		source: 0, target: 0,
+	    		srce: "http://website6.com/", 
+	    		dest: "http://website77.com/",
+	    		count: 200
+	    	}
+	    ]
+	   
 
 	}
- 
-    var svg = d3.select("body").append("svg").attr({"width":w,"height":h});
+ 	
 
+    var svg = d3.select("body").append("svg").attr({"width":w,"height":h});
+    var strokeWidthScale = d3.scale.linear()
+                    .domain([d3.min(dataset.edges, function(d) { return d.count; }),d3.max(dataset.edges, function(d) { return d.count; })])
+                    .range([1, 7]);
+    
     var force = d3.layout.force()
-        .nodes(dataset2.nodes)
-        .links(dataset2.edges)
+        .nodes(dataset.nodes)
+        .links(dataset.edges)
         .size([w,h])
         .linkDistance([linkDistance])
         .charge([-500])
@@ -136,16 +137,17 @@
  
 
     var edges = svg.selectAll("line")
-      .data(dataset2.edges)
+      .data(dataset.edges)
       .enter()
       .append("line")
       .attr("id",function(d,i) {return 'edge'+i})
-      .attr('marker-end','url(#arrowhead)')
-      .style("stroke","#ccc")
+      //.attr('marker-end','url(#arrowhead)')
+      .style("stroke","#555")
+      .style("stroke-width", function(d){ return strokeWidthScale(d.count)})
       .style("pointer-events", "none");
     
     var nodes = svg.selectAll("circle")
-      .data(dataset2.nodes)
+      .data(dataset.nodes)
       .enter()
       .append("circle")
       .attr({"r":15})
@@ -154,7 +156,7 @@
 
 
     var nodelabels = svg.selectAll(".nodelabel") 
-       .data(dataset2.nodes)
+       .data(dataset.nodes)
        .enter()
        .append("text")
        .attr({"x":function(d){return d.x;},
@@ -162,12 +164,18 @@
               "class":"nodelabel",
               "stroke":"black"})
        .text(function(d){return d.url;});
-
+       
     var edgepaths = svg.selectAll(".edgepath")
-        .data(dataset2.edges)
+        .data(dataset.edges)
         .enter()
         .append('path')
-        .attr({'d': function(d) {return 'M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y},
+        .attr({'d': function(d) {
+          //console.log(d.source, dataset.nodes[dataset.nodes.map(function(f){return f.name}).indexOf(d.source1)]);
+          var sr= indexData(d.srce);
+          var tr= indexData(d.dest);
+          //return 'M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y
+          return 'M '+sr.x+' '+sr.y+' L '+ tr.x +' '+tr.y
+        },
                'class':'edgepath',
                'fill-opacity':0,
                'stroke-opacity':0,
@@ -191,7 +199,7 @@
     edgelabels.append('textPath')
         .attr('xlink:href',function(d,i) {return '#edgepath'+i})
         .style("pointer-events", "none")
-        .text(function(d,i){return 'label '+i});
+        .text(function(d,i){return d.count});
 
 
     svg.append('defs').append('marker')
@@ -211,11 +219,10 @@
      
 
     force.on("tick", function(){
-
-        edges.attr({"x1": function(d){return d.source.x;},
-                    "y1": function(d){return d.source.y;},
-                    "x2": function(d){return d.target.x;},
-                    "y2": function(d){return d.target.y;}
+        edges.attr({"x1": function(d){return indexData(d.srce).x;},
+                    "y1": function(d){return indexData(d.srce).y;},
+                    "x2": function(d){return indexData(d.dest).x;},
+                    "y2": function(d){return indexData(d.dest).y;}
         });
 
         nodes.attr({"cx":function(d){return d.x;},
@@ -225,12 +232,12 @@
         nodelabels.attr("x", function(d) { return d.x; }) 
                   .attr("y", function(d) { return d.y; });
 
-        edgepaths.attr('d', function(d) { var path='M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y;
+        edgepaths.attr('d', function(d) { var path='M '+indexData(d.srce).x+' '+indexData(d.srce).y+' L '+ indexData(d.dest).x +' '+indexData(d.dest).y;
                                            //console.log(d)
                                            return path});       
 
         edgelabels.attr('transform',function(d,i){
-            if (d.target.x<d.source.x){
+            if (indexData(d.dest).x<indexData(d.srce).x){
                 bbox = this.getBBox();
                 rx = bbox.x+bbox.width/2;
                 ry = bbox.y+bbox.height/2;

@@ -68,16 +68,38 @@ var indexData= function(searchNode) {
     {name: "Jerry"}
     ],
     edges: [
-    {source: 0, target: 1, source1: "Adam", target1: "Bob"},
-    {source: 0, target: 2, source1: "Carrie", target1: "Bob"},
-    {source: 0, target: 3, source1: "Bob", target1: "Donovan"},
-    {source: 1, target: 3, source1: "Bob", target1: "Edward"},
-    {source: 1, target: 4, source1: "Bob", target1: "Felicity"},
-    {source: 2, target: 3, source1: "Adam", target1: "Carrie"},
-    {source: 2, target: 4, source1: "Adam", target1: "Donovan"},
-    {source: 3, target: 5, source1: "Carrie", target1: "Edward"},
-    {source: 4, target: 6, source1: "Carrie", target1: "Felicity"}
+    {source: 0, target: 0, source1: "Adam", target1: "Bob"},
+    {source: 0, target: 0, source1: "Carrie", target1: "Bob"},
+    {source: 0, target: 0, source1: "Bob", target1: "Donovan"},
+    {source: 0, target: 0, source1: "Bob", target1: "Edward"},
+    {source: 0, target: 0, source1: "Bob", target1: "Felicity"},
+    {source: 0, target: 0, source1: "Adam", target1: "Carrie"},
+    {source: 0, target: 0, source1: "Adam", target1: "Donovan"},
+    {source: 0, target: 0, source1: "Carrie", target1: "Edward"},
+    {source: 0, target: 0, source1: "Carrie", target1: "Felicity"}
     ]
+    /*edges: [
+    {source: "Adam", target: "Bob"},
+    {source: "Carrie", target: "Bob"},
+    {source: "Bob", target: "Donovan"},
+    {source: "Bob", target: "Edward"},
+    {source: "Bob", target: "Felicity"},
+    {source: "Adam", target: "Carrie"},
+    {source: "Adam", target: "Donovan"},
+    {source: "Carrie", target: "Edward"},
+    {source: "Carrie", target: "Felicity"}
+    ]*/
+    /*edges: [
+    {source1: 0, target1: 1, source: "Adam", target: "Bob"},
+    {source1: 0, target1: 2, source: "Carrie", target: "Bob"},
+    {source1: 0, target1: 3, source: "Bob", target: "Donovan"},
+    {source1: 1, target1: 3, source: "Bob", target: "Edward"},
+    {source1: 1, target1: 4, source: "Bob", target: "Felicity"},
+    {source1: 2, target1: 3, source: "Adam", target: "Carrie"},
+    {source1: 2, target1: 4, source: "Adam", target: "Donovan"},
+    {source1: 3, target1: 5, source: "Carrie", target: "Edward"},
+    {source1: 4, target1: 6, source: "Carrie", target: "Felicity"}
+    ]*/
     };
  
     var svg = d3.select("body").append("svg").attr({"width":w,"height":h});
