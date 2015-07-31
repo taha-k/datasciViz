@@ -63,14 +63,14 @@ var plotbar2=plotBar(400,300,"#bar2");
 var setData = function() {
 	var nodes, edges;
 	
-	d3.json("spec/wc_small.json", function(data1) {
+	d3.json("spec/wc_medium.json", function(data1) {
 		console.log("data1",data1)
 		data1.push({
 	        url:"Orphaned",
 			words: [ ]
 			});
       	nodes=data1;
-      d3.json("spec/lc_small.json", function(data2) {
+      d3.json("spec/lc_medium.json", function(data2) {
       	data2.forEach(function(d) {
   			d.source = 0;
   			d.target = 0;
