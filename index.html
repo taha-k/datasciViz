@@ -15,7 +15,10 @@
   fill-opacity: .125;
   shape-rendering: crispEdges;
 }
-
+.nodelabel {
+	font-size:10px;
+	color:red;
+}
 .axis path,
 .axis line {
   fill: none;
@@ -29,12 +32,11 @@
     <div id="menu" ></div>
     <div class="row">
 	    <div id="graph" class="col-md-6"></div>
-	    <div id="bar1" class="col-md-6"></div>
-	    <div id="bar2" class="col-md-6"></div>
+	    
     </div>
     <div class="row">
-	    <div id="wc1" class="col-md-6"></div>
-	    
+	    <div id="bar1" class="col-md-6"></div>
+	    <div id="bar2" class="col-md-6"></div>
     </div>
     
 </div>
@@ -44,42 +46,47 @@
 <script type="text/javascript" src="js/vega2.js"></script>
 <script type="text/javascript">
 
+
 var indexData= function(searchNode) {
-	var ind=dataset.nodes.map(function(f){return f.url}).indexOf(searchNode);
+	var ind=nodes.map(function(f){return f.url}).indexOf(searchNode);
 	if(ind!==-1) {
-		return dataset.nodes[ind];
+		return nodes[ind];
 	}
-  	return dataset.nodes[dataset.nodes.map(function(f){return f.url}).indexOf("Orphaned")]
+	nodes.push({
+	        url:searchNode,
+			words: [ ]
+			});
+  	return nodes[nodes.length-1]
 }
-var plotbar1=plotBar(400,300,"#bar1");
-var plotbar2=plotBar(400,300,"#bar2");
+var plotbar1=plotBar(900,350,"#bar1");
+var plotbar2=plotBar(900,350,"#bar2");
       //vega2.setData("","p1");
       //vega2.render();
-    var linkDistance=100;
+    var linkDistance=10;
 
     var colors = d3.scale.category10();
     var dataset;
-    
+    var nodes, edges;
 var setData = function() {
-	var nodes, edges;
 	
-	d3.json("spec/wc_medium.json", function(data1) {
+	
+	d3.json("spec/wc_final.json", function(data1) {
 		console.log("data1",data1)
 		data1.push({
 	        url:"Orphaned",
 			words: [ ]
 			});
       	nodes=data1;
-      d3.json("spec/lc_medium.json", function(data2) {
+      d3.json("spec/lc_final.json", function(data2) {
       	data2.forEach(function(d) {
-  			d.source = 0;
-  			d.target = 0;
+  			d.source = indexData(d.srce);
+  			d.target = indexData(d.dest);
 		});
 
       	edges=data2;
       	dataset= {nodes:nodes, edges:edges};
       	console.log(dataset)
-		createGraph(700,600);
+		createGraph(1800,600);
       });
  		
     });
@@ -89,7 +96,7 @@ var createGraph = function(w,h) {
     var svg = d3.select("#graph").append("svg").attr({"width":w,"height":h});
     var strokeWidthScale = d3.scale.linear()
                     .domain([d3.min(dataset.edges, function(d) { return d.count; }),d3.max(dataset.edges, function(d) { return d.count; })])
-                    .range([1, 7]);
+                    .range([1, 20]);
     
     var force = d3.layout.force()
         .nodes(dataset.nodes)
@@ -117,9 +124,13 @@ var createGraph = function(w,h) {
       .data(dataset.nodes)
       .enter()
       .append("circle")
-      .attr({"r":15})
+      .attr({"r":10})
       .style("fill",function(d,i){return colors(i);})
       .call(force.drag)
+      .call(d3.helper.tooltip()
+              .style({color: 'blue'})
+              .text(function(d, i){ return d.url; })
+              )
       .on('click', function(d, i){ 
       	//console.log(d);
       	plotbar1.setData(d,1);
@@ -137,7 +148,7 @@ var createGraph = function(w,h) {
        .attr({"x":function(d){return d.x;},
               "y":function(d){return d.y;},
               "class":"nodelabel",
-              "stroke":"black"})
+              "stroke":"grey"})
        .text(function(d){return d.url;});
        
     var edgepaths = svg.selectAll(".edgepath")
@@ -146,10 +157,10 @@ var createGraph = function(w,h) {
         .append('path')
         .attr({'d': function(d) {
           //console.log(d.source, dataset.nodes[dataset.nodes.map(function(f){return f.name}).indexOf(d.source1)]);
-          var sr= indexData(d.srce);
-          var tr= indexData(d.dest);
-          //return 'M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y
-          return 'M '+sr.x+' '+sr.y+' L '+ tr.x +' '+tr.y
+          //var sr= indexData(d.srce);
+          //var tr= indexData(d.dest);
+          return 'M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y
+          //return 'M '+sr.x+' '+sr.y+' L '+ tr.x +' '+tr.y
         },
                'class':'edgepath',
                'fill-opacity':0,
@@ -168,7 +179,7 @@ var createGraph = function(w,h) {
                'id':function(d,i){return 'edgelabel'+i},
                'dx':80,
                'dy':0,
-               'font-size':10,
+               'font-size':8,
                'fill':'#aaa'});
 
     edgelabels.append('textPath')
@@ -194,10 +205,10 @@ var createGraph = function(w,h) {
      
 
     force.on("tick", function(){
-        edges.attr({"x1": function(d){return indexData(d.srce).x;},
-                    "y1": function(d){return indexData(d.srce).y;},
-                    "x2": function(d){return indexData(d.dest).x;},
-                    "y2": function(d){return indexData(d.dest).y;}
+        edges.attr({"x1": function(d){return d.source.x;},
+                    "y1": function(d){return d.source.y;},
+                    "x2": function(d){return d.target.x;},
+                    "y2": function(d){return d.target.y;}
         });
 
         nodes.attr({"cx":function(d){return d.x;},
@@ -207,12 +218,12 @@ var createGraph = function(w,h) {
         nodelabels.attr("x", function(d) { return d.x; }) 
                   .attr("y", function(d) { return d.y; });
 
-        edgepaths.attr('d', function(d) { var path='M '+indexData(d.srce).x+' '+indexData(d.srce).y+' L '+ indexData(d.dest).x +' '+indexData(d.dest).y;
+        edgepaths.attr('d', function(d) { var path='M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y;
                                            //console.log(d)
                                            return path});       
 
         edgelabels.attr('transform',function(d,i){
-            if (indexData(d.dest).x<indexData(d.srce).x){
+            if (d.target.x<d.source.x){
                 bbox = this.getBBox();
                 rx = bbox.x+bbox.width/2;
                 ry = bbox.y+bbox.height/2;
@@ -252,7 +263,7 @@ function plotBar(w,h,div_id)
       that.render=function()
       {
           $(div_id).empty()
-          margin = {top: 20, right: 20, bottom: 30, left: 50, mid: 20};
+          margin = {top: 20, right: 20, bottom: 30, left: 90, mid: 20};
           width = w  - margin.left - margin.right;
           miniHeight = 30;
           height = h - margin.top - margin.mid - miniHeight - margin.bottom;
