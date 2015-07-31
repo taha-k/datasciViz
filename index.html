@@ -4,12 +4,39 @@
 <head>
 <meta charset="utf-8">
 <title>Force Layout with labels on edges</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <style type="text/css">
+.brush .extent {
+  stroke: #fff;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
 </style>
 </head>
 <body>
+<div class="container"></div>
+    <div id="menu" ></div>
+    <div class="row">
+	    <div id="graph" class="col-md-6"></div>
+	    <div id="bar1" class="col-md-6"></div>
+	    <div id="bar2" class="col-md-6"></div>
+    </div>
+    
+</div>
 <script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/tooltip.js"></script>
+<script type="text/javascript" src="js/vega2.js"></script> 
 <!-- <script type="text/javascript" src="js/d3.js"></script> -->
 <script type="text/javascript">
 
@@ -20,106 +47,42 @@ var indexData= function(searchNode) {
 	}
   	return dataset.nodes[dataset.nodes.map(function(f){return f.url}).indexOf("Orphaned")]
 }
-    var w = 1000;
-    var h = 600;
-    var linkDistance=200;
+var plotbar1=plotBar(400,300,"#bar1");
+var plotbar2=plotBar(400,300,"#bar2");
+      //vega2.setData("","p1");
+      //vega2.render();
+    var linkDistance=100;
 
     var colors = d3.scale.category10();
-
-    var dataset = {
-	    nodes: [
-	    	{
-	        url:"http://website1.com/",
-			words: [ { w:'Bob', c:14 }, { w:'test', c:123}]
-			},
-			{
-	        url:"http://website2.com/",
-			words: [ { w:'Bob', c:14 }, { w:'test', c:123}]
-			},
-			{
-	        url:"http://website3.com/",
-			words: [ { w:'Bob', c:14 }, { w:'test', c:123}]
-			},
-			{
-	        url:"http://website4.com/",
-			words: [ { w:'Bob', c:14 }, { w:'test', c:123}]
-			},
-			{
-	        url:"http://website5.com/",
-			words: [ { w:'Bob', c:14 }, { w:'test', c:123}]
-			},
-			{
-	        url:"http://website6.com/",
-			words: [ { w:'Bob', c:14 }, { w:'test', c:123}]
-			},
-			{
+    var dataset;
+    
+var setData = function() {
+	var nodes, edges;
+	
+	d3.json("spec/wc_small.json", function(data1) {
+		console.log("data1",data1)
+		data1.push({
 	        url:"Orphaned",
 			words: [ ]
-			}
-	    ],
-	    edges: [
-	    	{
-	    		source: 0, target: 0,
-	    		srce: "http://website1.com/", 
-	    		dest: "http://website2.com/",
-	    		count: 100
-	    	},
-	    	{
-	    		source: 0, target: 0,
-	    		srce: "http://website1.com/", 
-	    		dest: "http://website3.com/",
-	    		count: 130
-	    	},
-	    	{
-	    		source: 0, target: 0,
-	    		srce: "http://website2.com/", 
-	    		dest: "http://website4.com/",
-	    		count: 234
-	    	},
-	    	{
-	    		source: 0, target: 0,
-	    		srce: "http://website3.com/", 
-	    		dest: "http://website4.com/",
-	    		count: 240
-	    	},
-	    	{
-	    		source: 0, target: 0,
-	    		srce: "http://website4.com/", 
-	    		dest: "http://website5.com/",
-	    		count: 300
-	    	},
-	    	{
-	    		source: 0, target: 0,
-	    		srce: "http://website4.com/", 
-	    		dest: "http://website6.com/",
-	    		count: 140
-	    	},
-	    	{
-	    		source: 0, target: 0,
-	    		srce: "http://website3.com/", 
-	    		dest: "http://website6.com/",
-	    		count: 175
-	    	},
-	    	{
-	    		source: 0, target: 0,
-	    		srce: "http://website6.com/", 
-	    		dest: "http://website3.com/",
-	    		count: 200
-	    	}
-	    	,
-	    	{
-	    		source: 0, target: 0,
-	    		srce: "http://website6.com/", 
-	    		dest: "http://website77.com/",
-	    		count: 200
-	    	}
-	    ]
-	   
+			});
+      	nodes=data1;
+      d3.json("spec/lc_small.json", function(data2) {
+      	data2.forEach(function(d) {
+  			d.source = 0;
+  			d.target = 0;
+		});
 
-	}
- 	
-
-    var svg = d3.select("body").append("svg").attr({"width":w,"height":h});
+      	edges=data2;
+      	dataset= {nodes:nodes, edges:edges};
+      	console.log(dataset)
+		createGraph(700,600);
+      });
+ 		
+    });
+}
+//var dataset= {nodes:nodes1, edges:edges1};
+var createGraph = function(w,h) {
+    var svg = d3.select("#graph").append("svg").attr({"width":w,"height":h});
     var strokeWidthScale = d3.scale.linear()
                     .domain([d3.min(dataset.edges, function(d) { return d.count; }),d3.max(dataset.edges, function(d) { return d.count; })])
                     .range([1, 7]);
@@ -153,6 +116,14 @@ var indexData= function(searchNode) {
       .attr({"r":15})
       .style("fill",function(d,i){return colors(i);})
       .call(force.drag)
+      .on('click', function(d, i){ 
+      	//console.log(d);
+      	plotbar1.setData(d,1);
+      	plotbar1.render(); })
+      .on('mouseover', function(d, i){ 
+      	plotbar2.setData(d,2);
+      	plotbar2.render(); });
+
 
 
     var nodelabels = svg.selectAll(".nodelabel") 
@@ -248,7 +219,348 @@ var indexData= function(searchNode) {
                 }
         });
     });
+}
 
+
+
+
+function plotBar(w,h,div_id)
+    {
+      var that = {};
+      var data_bar = new Array();
+      var data=null;
+      var prop;
+      var url_name;
+      var colorScale,brush,margin ,width,miniHeight,height,svg,padding,selected,barsGroup,miniGroup, brushGroup ,axisRange, yScale,xScale ,xScaleBrush,xScaleAxis, yAxis,xAxis
+              
+      that.setData = function(d,pr) 
+      {
+          data_bar = d.words;
+          url_name = d.url;
+          prop=pr;
+      };
+
+      that.getData = function() 
+      {
+          return data;
+      }
+              
+      that.render=function()
+      {
+          $(div_id).empty()
+          margin = {top: 20, right: 20, bottom: 30, left: 50, mid: 20};
+          width = w  - margin.left - margin.right;
+          miniHeight = 30;
+          height = h - margin.top - margin.mid - miniHeight - margin.bottom;
+          svg=d3.select(div_id)
+                 .append("svg")
+                 .attr("width", width + margin.left + margin.right)
+                 .attr("height", height + margin.top + margin.mid + miniHeight + margin.bottom);
+          padding=20;
+               //new 
+          selected;
+          barsGroup = svg.append('g')
+                               .attr("class","barsGroup")
+                               .attr("transform","translate(" + margin.left + "," + margin.top + ")");
+          miniGroup = svg.append('g')
+                                .attr("class","miniGroup")
+                                .attr("transform","translate(" + margin.left + "," + (margin.top + height + margin.mid) + ")");
+          brushGroup = svg.append('g')
+                                .attr("class","brushGroup")
+                                .attr("transform","translate(" + margin.left + "," + (margin.top + height + margin.mid) + ")");              
+
+          axisRange = d3.range(data_bar,function(d){return d.w;});
+
+                //axisRange.shift();
+                
+                //axisRange.push((axisRange[axisRange.length - 1] + 1));
+
+                //new-ends
+          yScale = d3.scale.linear()
+                    //.domain([0, d3.max(data_bar, function(d) { return d.value; })])
+                    .domain(d3.range(data_bar,function(d){return d.c}))
+                    .range([height, 0]);
+
+          xScale = d3.scale.ordinal()
+                    .rangeBands([width, 0], 0.4, 0)
+                    .domain(d3.range(data_bar.length));
+                  
+
+          xScaleBrush = d3.scale.ordinal()
+                                .rangeBands([width, 0], 0.4, 0)
+                                .domain(d3.range(data_bar.length));
+
+          xScaleAxis =  d3.scale.ordinal()
+                                .rangeBands([width, 0], 0.4, 0)
+                                .domain(axisRange);
+
+          colorScale =  d3.scale.linear()
+                                .domain([d3.min(data_bar, function(d) { return d.c; }),d3.max(data_bar, function(d) { return d.c; })])
+                                .range(['#04a6f7','#000cff']);
+
+
+                /* Define y axis */
+          yAxis=d3.svg.axis()
+                    .scale(yScale)
+                     .orient("left")
+                     .ticks(5);
+          xAxis = d3.svg.axis()
+           .scale(xScaleAxis)
+           .tickSize(3,0)
+           .orient("bottom");
+
+          svg.append("g")
+            .attr("class", "y axis")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+            .append("g")
+            .attr("class", "axisLabel")
+            .append("text")
+            .attr("transform", "translate(" + -(margin.left * 0.8) + "," + (height/2) + "), rotate(-90)")
+            .style("text-anchor", "middle")
+            .text("Count");
+
+          /* Prepare the x axis */
+          svg.append("g")
+            .attr("class","x axis")
+            .attr("transform", "translate(" + margin.left + "," + (margin.top + height + margin.mid + miniHeight) + ")" )
+            .call(xAxis)
+            .append("g")
+            .attr("class", "axisLabel")
+            .append("text")
+            .attr("transform", "translate(" + (width/2) + "," + (margin.bottom-5) + ")")
+            .style("text-anchor", "middle") 
+            //.text(prop+"-value Cummulative Probablility=1")
+            .attr("id",prop+"-value");
+             
+             /* brush */
+            brush = d3.svg.brush()
+                    .x(xScaleBrush)
+                    .extent([0, width])
+                    .on("brush", display);
+
+            brushGroup.append("g")
+              .attr("class", "brush")
+              .call(brush)
+              .selectAll("rect")
+              .attr("opacity", 0.99)
+              .attr("height", miniHeight);
+
+
+
+            enter(miniGroup, data_bar, false);
+            updateBars(data_bar);
+            $("#"+prop+"-value").text(url_name);
+        };
+    
+      var display=function()
+          {
+              selected =  xScaleBrush.domain()
+                            .filter(function(d)
+                            {
+                              return (brush.extent()[0] <= xScaleBrush(d)) && (xScaleBrush(d) <= brush.extent()[1]);
+                            });
+
+              var start;
+              var end;
+              
+              
+              if (selected.length > 2 ) {
+                start = selected[0];
+                end = selected[selected.length - 1] + 1;
+              } else {
+                start = 0;
+                end = data_bar.length;
+              }
+
+              var updatedData = data_bar.slice(start, end);
+
+              updateBars(updatedData);
+          };
+
+      var update=function(grp, data, main)
+      {
+        grp.selectAll("rect").data(data, function (d) 
+        {
+          return d.w;
+        })
+        .attr("x", function (d, i) 
+        {
+          return xScale(i);
+        })
+        .attr("width", function (d) 
+        {
+          return xScale.rangeBand();
+        })
+        .attr("y", function (d)
+        {
+          return main ? yScale(d.c) : 0;
+        })
+        .attr("height", function (d) 
+        {
+          return main ? height - yScale(d.c) : miniHeight;
+        });
+      };
+
+      var enter=function(grp, data, main)
+      {
+        grp.selectAll("rect").data(data, function (d) 
+        {
+          return d.w;
+        })
+        .enter()
+        .append("rect")
+        .attr("x", function (d, i) 
+        {
+          return xScale(i);
+        })
+        .attr("width", function(d) 
+        {
+          return xScale.rangeBand();
+        })
+        .attr("y", function (d)
+        {
+          return main ? yScale(d.c) : 0;
+        })
+        .attr("height", function (d) 
+        {
+          return main ? height - yScale(d.c) : miniHeight;
+        })
+        .attr("fill", function (d, i)
+        {
+          return colorScale(d.c)
+        })
+        .attr("opacity", function () 
+        {
+          return 1;
+        })
+        .call(d3.helper.tooltip()
+                    .style({color: 'blue'})
+                    .text(function(d, i){ return "word="+d.w+"<br/> count="+d.c; }))
+                     
+      };
+
+      var exit=function(grp, data) 
+      {
+        grp.selectAll("rect").data(data, function (d) 
+        {
+          return d.w;
+        }).exit()
+        .remove();
+      };
+
+      var updateBars=function(data)
+      {
+        var m=0;
+        xScale.domain(d3.range(data.length));
+        yScale.domain([0, d3.max(data, function(d) {m=m+d.c; return d.c;})]);
+
+        /* Update */
+        update(barsGroup, data, true);
+
+        /* Enter… */
+        enter(barsGroup, data, true);
+
+        /* Exit */
+        exit(barsGroup, data);
+
+        /* Call the Y axis to adjust it to the new scale */
+        svg.select(div_id+" .y")
+          .transition()
+          .duration(10)
+          .call(yAxis);
+
+        
+      };         
+  
+
+      return that;
+
+    }
+setData();
+
+function vega_bar(w,h,div_id)
+{
+  	var that = {};
+	var data_bar = new Array();
+	var data1=null;
+	var prop;
+	that.setData = function(d) {
+              	console.log(d);
+                data1 = d.words;
+    };
+
+    that.getData = function() {
+                  return data1;
+    }
+
+	that.render = function() {
+		$(div_id).empty();
+		var spec1 = 
+		{
+		  "width": w,
+		  "height": h,
+		  "padding": {"top": 10, "left": 30, "bottom": 30, "right": 10},
+		  "data": [
+		    {
+		      "name": "table",
+		      "values": data1
+		    }
+		  ],
+		  "scales": [
+		    {
+		      "name": "x",
+		      "type": "ordinal",
+		      "range": "width",
+		      "domain": {"data": "table", "field": "w"},
+		      //"domainMin":true,
+		      //"domainMax":true
+		    },
+		    {
+		      "name": "y",
+		      "range": "height",
+		      "nice": true,
+		      "domain": {"data": "table", "field": "c"}
+		    }
+		  ],
+		  "axes": [
+		    {"type": "x", "scale": "x"},
+		    {"type": "y", "scale": "y"}
+		  ],
+		  "marks": [
+		    {
+		      "type": "rect",
+		      "from": {"data": "table"},
+		      "properties": {
+		        "enter": {
+		          "x": {"scale": "x", "field": "w"},
+		          "width": {"scale": "x", "band": true, "offset": -1},
+		          "y": {"scale": "y", "field": "c"},
+		          "y2": {"scale": "y", "value": 0}
+		        },
+		        "update": {
+		          "fill": {"value": "steelblue"}
+		        },
+		        "hover": {
+		          "fill": {"value": "red"}
+		        }
+		      }
+		    }
+		  ]
+		};
+
+		var id = 20, timer = null;
+		var renderer = "svg", animate = false, dur = 1000;
+		vg.parse.spec(spec1, function(chart) {
+		  self.view1 = chart({
+		    el: div_id,
+		    //data: data,
+		    renderer: renderer,
+		    hover: true
+		  }).update();
+		});
+	}
+return that;
+}
 </script>
 
 </body>
